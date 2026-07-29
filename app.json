@@ -19,7 +19,19 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Show-It",
+      "shortName": "Show-It",
+      "description": "Swipe with friends, match on a movie, start watching.",
+      "themeColor": "#E6F4FE",
+      "backgroundColor": "#E6F4FE",
+      "display": "standalone"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-splash-screen"
+    ]
   }
 }
