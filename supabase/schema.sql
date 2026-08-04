@@ -54,6 +54,32 @@ create table if not exists movie_cache (
   fetched_at timestamptz not null default now()
 );
 
+-- Persistent local movie catalog. Every movie TMDB ever returns gets stored here
+-- permanently (unlike movie_cache, this never expires). Genre/runtime-filtered
+-- rooms query this table directly before ever touching TMDB; TMDB is only called
+-- when the catalog doesn't have enough matching movies yet, and whatever comes
+-- back gets folded in here for next time. Platform/provider filters still bypass
+-- this and go straight through movie_cache, since provider availability changes
+-- too often to denormalize per-movie here.
+create table if not exists movies (
+  tmdb_id integer primary key,
+  title text not null,
+  overview text,
+  poster_path text,
+  vote_average numeric,
+  runtime_minutes integer,
+  genre_ids integer[] not null default '{}',
+  popularity numeric,
+  imdb_id text,
+  imdb_rating numeric,
+  rotten_tomatoes_score integer,
+  ratings_fetched_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists movies_genre_ids_idx on movies using gin (genre_ids);
+create index if not exists movies_popularity_idx on movies (popularity desc);
+
 -- Row Level Security: this app has no login, so access is scoped by room membership
 -- via device_id passed from the client. Keep policies permissive but scoped to room_id
 -- so one room's data isn't readable cross-room by guessing UUIDs alone (code is still
@@ -64,6 +90,7 @@ alter table room_members enable row level security;
 alter table movie_pool enable row level security;
 alter table swipes enable row level security;
 alter table movie_cache enable row level security;
+alter table movies enable row level security;
 
 create policy "rooms are readable by anyone with the room id" on rooms
   for select using (true);
@@ -99,6 +126,15 @@ create policy "anyone can write to the movie cache" on movie_cache
   for insert with check (true);
 
 create policy "anyone can refresh the movie cache" on movie_cache
+  for update using (true);
+
+create policy "movies are readable by anyone" on movies
+  for select using (true);
+
+create policy "anyone can add to the movie catalog" on movies
+  for insert with check (true);
+
+create policy "anyone can refresh a catalog entry" on movies
   for update using (true);
 
 -- Realtime: broadcast changes on these tables so clients get instant swipe/match updates.

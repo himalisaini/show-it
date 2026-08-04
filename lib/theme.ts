@@ -33,6 +33,13 @@ export const spacing = {
   screen: 20,
 };
 
+export const layout = {
+  // Caps content width on tablets/wide screens so phone-proportioned elements
+  // (room code boxes, buttons) don't stretch into oversized, broken-looking
+  // shapes. No effect on actual phone widths.
+  maxContentWidth: 480,
+};
+
 export const radii = {
   chip: 6,
   sm: 12,

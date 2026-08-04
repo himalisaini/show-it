@@ -1,10 +1,29 @@
-# Show-It
+<div align="center">
+  <img src="docs/logo.png" alt="Show-It logo" width="96" />
 
-Tinder for movie night. Someone starts a Watch Party, shares a 4-digit code, and
-everyone swipes through a shared stack of movies. The moment everyone swipes right
-on the same title, it's a match and the app tells you where to watch it.
+  # Show-It
 
-<img src="docs/screenshot-home.png" alt="Show-It home screen" width="320" />
+  **Tinder for movie night.**
+
+  ![Platforms](https://img.shields.io/badge/platform-iOS%20%7C%20Android%20%7C%20Web-ff3b5c)
+  ![Expo](https://img.shields.io/badge/built%20with-Expo-000000)
+  ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+</div>
+
+<br>
+
+Someone starts a Watch Party, shares a 4-digit code, and everyone swipes through a
+shared stack of movies. The moment everyone swipes right on the same title, it's a
+match — and the app tells you where to actually watch it.
+
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="docs/screenshot-home.png" alt="Home screen" width="280" /></td>
+      <td><img src="docs/screenshot-lobby.png" alt="Lobby screen with filters" width="280" /></td>
+    </tr>
+  </table>
+</div>
 
 ## Why it's built this way
 
@@ -18,6 +37,7 @@ detection happens in a Postgres function so it's not racy between devices.
 - Expo (React Native + TypeScript) for the UI, navigation, and swipe gestures
 - Supabase for room/member/swipe storage and Realtime sync
 - TMDB for movie data, posters, streaming providers, and trailers
+- OMDb for real IMDb / Rotten Tomatoes ratings
 - react-native-reanimated + react-native-gesture-handler for the card deck
 
 ## Setup
@@ -26,8 +46,8 @@ detection happens in a Postgres function so it's not racy between devices.
 
 1. Create a free project at [supabase.com](https://supabase.com).
 2. Open the SQL editor and run [`supabase/schema.sql`](supabase/schema.sql). This
-   sets up `rooms`, `room_members`, `movie_pool`, `swipes`, `movie_cache`, the RLS
-   policies, the realtime publication, and the `check_for_match` function.
+   sets up `rooms`, `room_members`, `movie_pool`, `swipes`, `movie_cache`, `movies`,
+   the RLS policies, the realtime publication, and the `check_for_match` function.
 3. Grab your Project URL and `anon` public key from Project Settings > API.
 
 ### 2. TMDB
@@ -37,14 +57,19 @@ detection happens in a Postgres function so it's not racy between devices.
 2. Either the v3 API key or the v4 read access token works — the app authenticates
    with whichever one you paste in.
 
-### 3. Environment
+### 3. OMDb (optional, for IMDb / Rotten Tomatoes ratings)
+
+Grab a free key at [omdbapi.com/apikey.aspx](https://www.omdbapi.com/apikey.aspx).
+Without it, cards just skip those ratings and show TMDB's score only.
+
+### 4. Environment
 
 ```bash
 cp .env.example .env
 ```
 
-Fill in `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and
-`EXPO_PUBLIC_TMDB_API_KEY`.
+Fill in `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`,
+`EXPO_PUBLIC_TMDB_API_KEY`, and `EXPO_PUBLIC_OMDB_API_KEY`.
 
 ## Running it
 
@@ -59,9 +84,19 @@ To let someone else on the same WiFi try it, run `npx expo start` instead of
 `npm run web` — that gives you a QR code and a LAN address they can hit from their
 own phone or browser.
 
-To ship the web build as a real installable PWA, export it (`npx expo export -p
-web`) and drop the `dist/` folder on any static host — Vercel, Netlify, Cloudflare
-Pages, GitHub Pages all work.
+### Deploying the PWA for real
+
+```bash
+npm run build:web
+cd dist && vercel --prod
+```
+
+Don't run `npx expo export -p web` directly — `build:web` also patches the output
+to fix two things Expo's export leaves broken: it doesn't add the
+`<link rel="manifest">` / Apple home-screen tags needed for "Add to Home Screen"
+to work, and it emits font files under a folder literally named `node_modules`,
+which most static hosts (Vercel included) silently exclude from deploys, breaking
+every custom font in production.
 
 ## How matching works
 
@@ -76,11 +111,17 @@ everyone gets bounced to the match screen at the same time.
 
 ## Filters and caching
 
-The host can narrow the pool by genre, streaming platform, and runtime before
-swiping starts — those live in `rooms.filters` and sync to everyone in the lobby in
-real time. TMDB responses (movie lists, provider lists, trailers) get cached in a
-shared `movie_cache` table with TTLs ranging from a day to a week, so repeated
-rooms with similar filters skip the external API call entirely.
+The host can narrow the pool by genre, industry (Bollywood, Korean, Hollywood,
+etc.), streaming platform, and runtime before swiping starts — those live in
+`rooms.filters` and sync to everyone in the lobby in real time.
+
+Movie data is cached two ways:
+
+- A persistent `movies` catalog table that grows over time. Genre/runtime-only
+  rooms get served straight from Postgres once it has enough matching movies,
+  skipping TMDB entirely.
+- A shorter-lived `movie_cache` table for anything TMDB-specific that can't be
+  answered locally (platform/industry filters, ratings, trailers, provider lists).
 
 ## Known limitations
 
@@ -100,3 +141,7 @@ If you want this on the actual App Store / Play Store instead of just the PWA, u
 [EAS Build](https://docs.expo.dev/build/introduction/) — same codebase, no code
 changes needed. You'll just need an Apple Developer account ($99/year) and a
 Google Play developer account ($25 one-time).
+
+## Credits
+
+App icon: [Movies icons created by Magnific — Flaticon](https://www.flaticon.com/free-icons/movies).

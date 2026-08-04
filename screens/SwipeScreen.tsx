@@ -9,7 +9,7 @@ import { getDeviceId } from "../lib/device";
 import { getProviderOptions } from "../lib/movies";
 import type { ProviderOption } from "../lib/tmdb";
 import SwipeCard, { type SwipeDirection } from "../components/SwipeCard";
-import { colors, fonts, spacing } from "../lib/theme";
+import { colors, fonts, layout, spacing } from "../lib/theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Swipe">;
 type PoolMovie = {
@@ -110,6 +110,7 @@ export default function SwipeScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+    <View style={styles.content}>
       <View style={styles.topRow}>
         <View style={styles.swipingBadge}>
           <View style={styles.dotStack}>
@@ -163,11 +164,13 @@ export default function SwipeScreen({ route, navigation }: Props) {
         </View>
       )}
     </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingTop: 60 },
+  container: { flex: 1, backgroundColor: colors.background, paddingTop: 60, alignItems: "center" },
+  content: { flex: 1, width: "100%", maxWidth: layout.maxContentWidth },
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",

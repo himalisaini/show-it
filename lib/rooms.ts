@@ -4,6 +4,7 @@ export type RoomFilters = {
   platforms: number[]; // TMDB watch-provider ids
   genreIds: number[];
   maxRuntimeMinutes: number | null;
+  industry: string | null; // key into INDUSTRY_OPTIONS, e.g. "bollywood"
 };
 
 export async function updateRoomFilters(roomId: string, filters: RoomFilters) {

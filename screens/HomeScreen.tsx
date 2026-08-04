@@ -5,7 +5,7 @@ import type { RootStackParamList } from "../types/navigation";
 import { getDeviceId } from "../lib/device";
 import { createRoom, joinRoom } from "../lib/rooms";
 import { showAlert } from "../lib/alert";
-import { colors, fonts, radii, shadows, spacing } from "../lib/theme";
+import { colors, fonts, layout, radii, shadows, spacing } from "../lib/theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -24,6 +24,7 @@ export default function HomeScreen({ navigation }: Props) {
         platforms: [],
         genreIds: [],
         maxRuntimeMinutes: null,
+        industry: null,
       });
       navigation.navigate("Lobby", { roomCode: room.code });
     } catch (err) {
@@ -57,6 +58,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.content}>
       <View style={styles.header}>
         <Text style={styles.wordmark}>SHOW-IT</Text>
         <Text style={styles.tagline}>Swipe · Match · Watch</Text>
@@ -126,12 +128,21 @@ export default function HomeScreen({ navigation }: Props) {
       </View>
 
       <Text style={styles.footer}>Bring 2–8 friends. iOS · Android · Web</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: spacing.screen, paddingTop: 72, paddingBottom: 32 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: spacing.screen,
+    paddingTop: 72,
+    paddingBottom: 32,
+    alignItems: "center",
+  },
+  content: { flex: 1, width: "100%", maxWidth: layout.maxContentWidth },
   header: { alignItems: "center", marginBottom: spacing.xxl },
   wordmark: {
     fontFamily: fonts.display,

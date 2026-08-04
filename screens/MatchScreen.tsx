@@ -8,7 +8,7 @@ import { getWatchProvidersForMovie } from "../lib/movies";
 import { supabase } from "../lib/supabase";
 import { brandFor } from "../lib/providerBrand";
 import Confetti from "../components/Confetti";
-import { colors, fonts, radii, spacing } from "../lib/theme";
+import { colors, fonts, layout, radii, spacing } from "../lib/theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Match">;
 
@@ -45,6 +45,7 @@ export default function MatchScreen({ route, navigation }: Props) {
       <View style={[styles.glowBlob, styles.glowTopLeft]} />
       <View style={[styles.glowBlob, styles.glowBottomRight]} />
 
+      <View style={styles.centeredContent}>
       <View style={styles.content}>
         <Text style={styles.eyebrow}>It's a Match!</Text>
         <Text style={styles.headline}>EVERYONE WANTS{"\n"}TO WATCH</Text>
@@ -77,12 +78,21 @@ export default function MatchScreen({ route, navigation }: Props) {
       <Pressable style={styles.doneButton} onPress={() => navigation.popToTop()}>
         <Text style={styles.doneButtonText}>Done</Text>
       </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: spacing.screen, paddingTop: 80, paddingBottom: 32 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: spacing.screen,
+    paddingTop: 80,
+    paddingBottom: 32,
+    alignItems: "center",
+  },
+  centeredContent: { flex: 1, width: "100%", maxWidth: layout.maxContentWidth },
   glowBlob: {
     position: "absolute",
     width: 220,

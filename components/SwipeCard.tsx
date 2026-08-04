@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Image, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -9,7 +9,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { posterUrl } from "../lib/tmdb";
-import { getTrailerKey } from "../lib/movies";
+import { getTrailerKey, getRatingsForMovie } from "../lib/movies";
+import type { OmdbRatings } from "../lib/omdb";
 import { colors, fonts, radii, shadows, spacing } from "../lib/theme";
 
 export type SwipeDirection = "right" | "left" | "up";
@@ -88,6 +89,17 @@ export default function SwipeCard({ movie, onSwiped, isTop }: Props) {
   const poster = posterUrl(movie.poster_path);
   const scorePercent = Math.round(movie.vote_average * 10);
   const [loadingTrailer, setLoadingTrailer] = useState(false);
+  const [ratings, setRatings] = useState<OmdbRatings | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getRatingsForMovie(movie.tmdb_id).then((result) => {
+      if (!cancelled) setRatings(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [movie.tmdb_id]);
 
   async function handleTrailerPress() {
     if (loadingTrailer) return;
@@ -130,9 +142,23 @@ export default function SwipeCard({ movie, onSwiped, isTop }: Props) {
             <Text style={styles.title} numberOfLines={1}>
               {movie.title.toUpperCase()}
             </Text>
-            <View style={styles.scoreBlock}>
-              <Text style={styles.scoreValue}>{scorePercent}%</Text>
-              <Text style={styles.scoreLabel}>TMDB</Text>
+            <View style={styles.scoreRow}>
+              {ratings?.imdbRating != null && (
+                <View style={styles.scoreBlock}>
+                  <Text style={styles.scoreValue}>{ratings.imdbRating.toFixed(1)}</Text>
+                  <Text style={styles.scoreLabel}>IMDb</Text>
+                </View>
+              )}
+              {ratings?.rottenTomatoesScore != null && (
+                <View style={styles.scoreBlock}>
+                  <Text style={styles.scoreValue}>{ratings.rottenTomatoesScore}%</Text>
+                  <Text style={styles.scoreLabel}>RT</Text>
+                </View>
+              )}
+              <View style={styles.scoreBlock}>
+                <Text style={styles.scoreValue}>{scorePercent}%</Text>
+                <Text style={styles.scoreLabel}>TMDB</Text>
+              </View>
             </View>
           </View>
           {movie.genres.length > 0 && (
@@ -200,6 +226,7 @@ const styles = StyleSheet.create({
   },
   titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   title: { color: colors.foreground, fontFamily: fonts.display, fontSize: 20, flexShrink: 1, marginRight: spacing.sm },
+  scoreRow: { flexDirection: "row", gap: spacing.sm },
   scoreBlock: { alignItems: "flex-end" },
   scoreValue: { color: colors.success, fontFamily: fonts.display, fontSize: 18 },
   scoreLabel: {

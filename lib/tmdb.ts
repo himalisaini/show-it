@@ -11,6 +11,7 @@ export type TmdbMovie = {
   vote_average: number;
   runtime?: number;
   genre_ids: number[];
+  popularity?: number;
 };
 
 export type WatchProvider = {
@@ -115,6 +116,8 @@ export type MovieFilters = {
   providerIds: number[];
   maxRuntimeMinutes: number | null;
   region?: string;
+  originalLanguage?: string;
+  originCountry?: string;
 };
 
 export async function fetchFilteredMovies(filters: MovieFilters, page = 1) {
@@ -135,6 +138,12 @@ export async function fetchFilteredMovies(filters: MovieFilters, page = 1) {
   }
   if (filters.maxRuntimeMinutes) {
     params["with_runtime.lte"] = String(filters.maxRuntimeMinutes);
+  }
+  if (filters.originalLanguage) {
+    params.with_original_language = filters.originalLanguage;
+  }
+  if (filters.originCountry) {
+    params.with_origin_country = filters.originCountry;
   }
 
   return tmdbFetch<{ results: TmdbMovie[] }>("/discover/movie", params);
@@ -166,6 +175,11 @@ export async function fetchWatchProviders(movieId: number, region = "US") {
 
 export async function fetchGenres() {
   return tmdbFetch<{ genres: { id: number; name: string }[] }>("/genre/movie/list");
+}
+
+export async function fetchImdbId(movieId: number): Promise<string | null> {
+  const data = await tmdbFetch<{ imdb_id: string | null }>(`/movie/${movieId}/external_ids`);
+  return data.imdb_id;
 }
 
 type TmdbVideo = {

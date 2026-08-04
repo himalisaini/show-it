@@ -1,5 +1,6 @@
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { GENRE_LIST, posterUrl, type ProviderOption } from "../lib/tmdb";
+import { INDUSTRY_OPTIONS } from "../lib/industries";
 import type { RoomFilters } from "../lib/rooms";
 import { colors, fonts, radii, spacing } from "../lib/theme";
 
@@ -17,6 +18,7 @@ type Props = {
   onToggleGenre: (id: number) => void;
   onToggleProvider: (id: number) => void;
   onSelectRuntime: (minutes: number | null) => void;
+  onSelectIndustry: (key: string | null) => void;
 };
 
 function providerLogoUrl(logoPath: string) {
@@ -30,13 +32,15 @@ export default function FiltersEditor({
   onToggleGenre,
   onToggleProvider,
   onSelectRuntime,
+  onSelectIndustry,
 }: Props) {
   if (!editable) {
     const genreNames = GENRE_LIST.filter((g) => filters.genreIds.includes(g.id)).map((g) => g.name);
     const providerNames = providers.filter((p) => filters.platforms.includes(p.provider_id)).map((p) => p.provider_name);
     const runtimeLabel = RUNTIME_OPTIONS.find((r) => r.value === filters.maxRuntimeMinutes)?.label;
+    const industryLabel = INDUSTRY_OPTIONS.find((i) => i.key === filters.industry)?.label;
 
-    const parts = [genreNames.join(", "), providerNames.join(", "), runtimeLabel]
+    const parts = [genreNames.join(", "), providerNames.join(", "), industryLabel, runtimeLabel]
       .filter(Boolean)
       .filter((p) => p !== "Any length");
 
@@ -63,6 +67,22 @@ export default function FiltersEditor({
               onPress={() => onToggleGenre(genre.id)}
             >
               <Text style={[styles.chipText, active && styles.chipTextActive]}>{genre.name}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Text style={styles.sectionLabel}>Industry</Text>
+      <View style={styles.chipRow}>
+        {INDUSTRY_OPTIONS.map((industry) => {
+          const active = filters.industry === industry.key;
+          return (
+            <Pressable
+              key={industry.key}
+              style={[styles.chip, active && styles.chipActive]}
+              onPress={() => onSelectIndustry(industry.key)}
+            >
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{industry.label}</Text>
             </Pressable>
           );
         })}

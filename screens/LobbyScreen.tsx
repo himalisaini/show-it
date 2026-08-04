@@ -10,13 +10,13 @@ import { getMoviesForRoom, getProviderOptions } from "../lib/movies";
 import { getDeviceId } from "../lib/device";
 import Avatar from "../components/Avatar";
 import FiltersEditor from "../components/FiltersEditor";
-import { colors, fonts, radii, shadows, spacing } from "../lib/theme";
+import { colors, fonts, layout, radii, shadows, spacing } from "../lib/theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Lobby">;
 type Member = { id: string; display_name: string; device_id: string };
 type Room = { id: string; code: string; status: string; host_id: string; filters: RoomFilters };
 
-const EMPTY_FILTERS: RoomFilters = { platforms: [], genreIds: [], maxRuntimeMinutes: null };
+const EMPTY_FILTERS: RoomFilters = { platforms: [], genreIds: [], maxRuntimeMinutes: null, industry: null };
 const FILTERS_DEBOUNCE_MS = 700;
 
 export default function LobbyScreen({ route, navigation }: Props) {
@@ -126,6 +126,13 @@ export default function LobbyScreen({ route, navigation }: Props) {
     updateRoomFilters(room.id, next).catch(() => {});
   }
 
+  function selectIndustry(key: string | null) {
+    if (!isHost || !room) return;
+    const next = { ...filters, industry: filters.industry === key ? null : key };
+    setFilters(next);
+    updateRoomFilters(room.id, next).catch(() => {});
+  }
+
   async function handleStart() {
     if (!room) return;
     setStarting(true);
@@ -166,6 +173,7 @@ export default function LobbyScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+    <View style={styles.content}>
       <View style={styles.topRow}>
         <Text style={styles.eyebrow}>Lobby</Text>
         <Text style={styles.countMono}>{members.length} joined</Text>
@@ -197,6 +205,7 @@ export default function LobbyScreen({ route, navigation }: Props) {
             onToggleGenre={toggleGenre}
             onToggleProvider={toggleProvider}
             onSelectRuntime={selectRuntime}
+            onSelectIndustry={selectIndustry}
           />
         }
         renderItem={({ item }) => {
@@ -217,7 +226,7 @@ export default function LobbyScreen({ route, navigation }: Props) {
             </View>
           );
         }}
-        style={{ flex: 1, marginBottom: spacing.lg }}
+        style={{ flex: 1, minHeight: 0, marginBottom: spacing.lg }}
       />
 
       {starting ? (
@@ -230,11 +239,19 @@ export default function LobbyScreen({ route, navigation }: Props) {
         <Text style={styles.waitingText}>Waiting for the host to start...</Text>
       )}
     </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: spacing.screen, backgroundColor: colors.background, paddingTop: 64 },
+  container: {
+    flex: 1,
+    padding: spacing.screen,
+    backgroundColor: colors.background,
+    paddingTop: 64,
+    alignItems: "center",
+  },
+  content: { flex: 1, width: "100%", maxWidth: layout.maxContentWidth },
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg },
   eyebrow: {
     fontFamily: fonts.sansBold,

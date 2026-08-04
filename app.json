@@ -5,13 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0f0f13",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -25,8 +25,8 @@
       "name": "Show-It",
       "shortName": "Show-It",
       "description": "Swipe with friends, match on a movie, start watching.",
-      "themeColor": "#E6F4FE",
-      "backgroundColor": "#E6F4FE",
+      "themeColor": "#0f0f13",
+      "backgroundColor": "#0f0f13",
       "display": "standalone"
     },
     "plugins": [
